@@ -1,7 +1,7 @@
 import React from 'react';
 import Layout from '../components/LayoutTemplate';
 
-export default function DashboardTemplate({ }) {
+export default function DashboardTemplate() {
     return (
         <Layout>
             <div className="container mt-4">
