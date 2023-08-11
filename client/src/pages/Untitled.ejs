@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required Meta Tags Always Come First -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="api_baseurl" content="<%= process.env.API_BASEURL %>">
+
+  <!-- Title -->
+  <title><%- page_title %> | Zeepay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
+  <meta content="Coderthemes" name="author" />
+
+  <!-- App favicon -->
+  <link rel="shortcut icon" href="/assets/images/zeepay.png">
+
+  <%- defineContent('css_plugins') %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+  <!-- App css -->
+  <link href="/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+  <link href="/assets/css/app.min.css" rel="stylesheet" type="text/css" id="app-style" />
+  <link href="/assets/css/mystyle.css" rel="stylesheet" type="text/css" />
+
+  <link href="/assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
+  <link href="/assets/css/vendor/dataTables.bootstrap5.css" rel="stylesheet" type="text/css" />
+
+  <%- defineContent('css_styles') %>
+  <style type="text/css">
+    .btn-xxl {
+      font-size: calc(2rem + 0.0012vw);
+      padding: 0.8rem 1rem;
+      width: 100%;
+      height: 100%;
+    }
+
+    .apex-chart:not(#partners-chart) .apexcharts-tooltip-text,
+    .apex-chart:not(#partners-chart) .apexcharts-tooltip-title {
+      color: #fff;
+    }
+
+    hr:not([size]) {
+      height: .5px;
+    }
+  </style>
+</head>
+
+<body class="loading" data-layout-color="light" data-leftbar-theme="dark" data-layout-mode="fluid" data-rightbar-onstart="true">
+  <!-- Begin page -->
+  <div class="wrapper">
+    <%- include('../partials/sidebar_user') %>
+
+    <div class="content-page">
+      <div class="content">
+        <%- include('../partials/navbar_user'); -%>
+
+        <!-- Start Content-->
+
+        <%- defineContent('page_content') %>
+        <!-- container -->
+
+      </div>
+      <!-- content -->
+
+      <%- include('../partials/footer'); -%>
+
+    </div>
+
+  </div>
+  <!-- END wrapper -->
+
+  <!-- bundle -->
+  <script src="/assets/js/vendor.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+
+  <!-- third party:js -->
+  <script src="/assets/js/vendor/d3.min.js"></script>
+  <script src="/assets/js/vendor/apexcharts.min.js"></script>
+  <script src="/assets/js/vendor/britecharts.min.js"></script>
+
+
+  <%- defineContent('js_plugins') %>
+
+  <script src="/assets/js/vendor/apexcharts.min.js"></script>
+  <script src="/assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
+  <script src="/assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
+
+  <script src="/assets/js/vendor/jquery.dataTables.min.js"></script>
+  <script src="/assets/js/vendor/dataTables.bootstrap5.js"></script>
+
+  
+
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+  <script>
+    const API_BASEURL = $('meta[name="api_baseurl"]').attr('content');
+
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top',
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      }
+    });
+
+    function downloadFile(url) {
+      return new Promise((resolve, reject) => {
+        $.ajax({
+          'url': url,
+          'type': 'GET',
+          'xhrFields': {
+            responseType: 'blob'
+          },
+          'success': function(data, status, xhr) {
+            var filename = xhr.getResponseHeader('filename');
+            // console.log(xhr.getAllResponseHeaders());
+
+            var a = document.createElement('a');
+            var url = window.URL.createObjectURL(data);
+            a.href = url;
+            a.download = filename;
+            document.body.append(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            resolve();
+          },
+          'error': function(xhr, status, error) {
+
+            const errors = JSON.parse(xhr.getResponseHeader('errors'));
+            const errorList = errors.map(error => '<li>' + error + '</li>').join('');
+
+            Swal.fire({
+              title: 'Error',
+              html: '<ul style="list-style-type: none;">' + errorList + '</ul>',
+              icon: "error"
+            });
+
+            reject();
+          }
+        });
+      });
+    }
+
+    const getToken = () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        return null;
+      }
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      if (payload.exp < Date.now() / 1000) {
+        localStorage.removeItem('token');
+        return null;
+      }
+
+      return token;
+    };
+
+    const setToken = (token) => {
+      localStorage.setItem('token', token);
+    };
+
+    if (!getToken()) {
+      location.replace('/login');
+    }
+
+    $(() => {
+      $.ajaxSetup({
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        },
+      });
+
+      if (getToken()) {
+        $('body').show();
+      }
+
+      
+    })
+  </script>
+
+  <%- defineContent('js_scripts') %>
+</body>
+
+</html>
